@@ -1,8 +1,8 @@
-use candid::candid_method;
+use candid::{candid_method, Principal};
 use ic_cdk::{caller, storage};
 use ic_cdk_macros::{post_upgrade, pre_upgrade, query, update};
 
-use crate::logic::store::{Store, DATA};
+use crate::logic::store::{Store, Wallets, DATA};
 
 #[pre_upgrade]
 pub fn pre_upgrade() {
@@ -17,18 +17,20 @@ pub fn post_upgrade() {
 
 #[update]
 #[candid_method(update)]
-async fn add_to_whitelist() -> Result<Vec<u32>, String> {
-    Store::add_to_whitelist(caller()).await
+async fn add_to_whitelist(nns_principal: Principal) -> Result<Vec<u32>, String> {
+    Store::add_to_whitelist(caller(), nns_principal).await
 }
 
 #[query]
 #[candid_method(query)]
-async fn get_whitelist() -> Result<Vec<(u32, String)>, String> {
-    if caller().to_string() != "ledm3-52ncq-rffuv-6ed44-hg5uo-iicyu-pwkzj-syfva-heo4k-p7itq-aqe" {
-        return Err("Unauthorized".to_string());
+async fn get_whitelist() -> Result<Vec<(u32, Wallets)>, String> {
+    if caller().to_string() == "ledm3-52ncq-rffuv-6ed44-hg5uo-iicyu-pwkzj-syfva-heo4k-p7itq-aqe"
+        || caller().to_string() == "ve3v4-o7xuv-ijejl-vcyfx-hjy3b-owwtx-jte2k-2bciw-spskd-jgmvd-rqe"
+    {
+        return Ok(Store::get_whitelist());
     }
 
-    Ok(Store::get_whitelist())
+    return Err("Unauthorized".to_string());
 }
 
 // Hacky way to expose the candid interface to the outside world

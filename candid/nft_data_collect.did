@@ -1,7 +1,8 @@
 type Result = variant { Ok : vec nat32; Err : text };
-type Result_1 = variant { Ok : vec record { nat32; text }; Err : text };
+type Result_1 = variant { Ok : vec record { nat32; Wallets }; Err : text };
+type Wallets = record { nns_wallet : principal; nft_wallet : principal };
 service : {
   __get_candid_interface_tmp_hack : () -> (text) query;
-  add_to_whitelist : () -> (Result);
+  add_to_whitelist : (principal) -> (Result);
   get_whitelist : () -> (Result_1) query;
 }

@@ -10,8 +10,14 @@ use crate::rust_declarations::ext_declaration::SERVICE;
 pub static DAY_IN_NANOS: u64 = Duration::from_secs(1 * 24 * 60 * 60).as_nanos() as u64;
 
 #[derive(Deserialize, CandidType, Clone)]
+pub struct Wallets {
+    pub nft_wallet: Principal,
+    pub nns_wallet: Principal,
+}
+
+#[derive(Deserialize, CandidType, Clone)]
 pub struct Store {
-    pub whitelist: HashMap<u32, Principal>,
+    pub whitelist: HashMap<u32, Wallets>,
 }
 
 impl Default for Store {
@@ -27,7 +33,10 @@ thread_local! {
 }
 
 impl Store {
-    pub async fn add_to_whitelist(caller: Principal) -> Result<Vec<u32>, String> {
+    pub async fn add_to_whitelist(
+        caller: Principal,
+        nns_principal: Principal,
+    ) -> Result<Vec<u32>, String> {
         let ext = SERVICE(Principal::from_text("gksxm-waaaa-aaaao-aapjq-cai").unwrap());
 
         let identifier = Self::principal_to_identifier(&caller);
@@ -49,7 +58,13 @@ impl Store {
 
                 for _mint_id in &filtered_data {
                     DATA.with(|data| {
-                        data.borrow_mut().whitelist.insert(*_mint_id, caller);
+                        data.borrow_mut().whitelist.insert(
+                            *_mint_id,
+                            Wallets {
+                                nft_wallet: caller,
+                                nns_wallet: nns_principal,
+                            },
+                        );
                     });
                 }
                 Ok(filtered_data)
@@ -58,13 +73,13 @@ impl Store {
         }
     }
 
-    pub fn get_whitelist() -> Vec<(u32, String)> {
+    pub fn get_whitelist() -> Vec<(u32, Wallets)> {
         DATA.with(|data| {
             data.borrow()
                 .whitelist
                 .iter()
-                .map(|d| (d.0.clone(), d.1.to_string()))
-                .collect::<Vec<(u32, String)>>()
+                .map(|d| (d.0.clone(), d.1.clone()))
+                .collect::<Vec<(u32, Wallets)>>()
         })
     }
 
