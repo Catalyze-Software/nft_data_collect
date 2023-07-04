@@ -1,0 +1,10 @@
+{
+  "canisters": {
+    "nft_data_collect": {
+      "type": "rust",
+      "package": "nft_data_collect",
+      "candid": "candid/nft_data_collect.did",
+      "wasm": "wasm/nft_data_collect.wasm.gz"
+    }
+  }
+}

@@ -1,0 +1,7 @@
+type Result = variant { Ok : vec nat32; Err : text };
+type Result_1 = variant { Ok : vec record { nat32; text }; Err : text };
+service : {
+  __get_candid_interface_tmp_hack : () -> (text) query;
+  add_to_whitelist : () -> (Result);
+  get_whitelist : () -> (Result_1) query;
+}
