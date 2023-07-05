@@ -2,7 +2,10 @@ use candid::{candid_method, Principal};
 use ic_cdk::{caller, storage};
 use ic_cdk_macros::{post_upgrade, pre_upgrade, query, update};
 
-use crate::logic::store::{Store, Wallets, DATA};
+use crate::{
+    logic::store::{Store, Wallets, DATA},
+    rust_declarations::ext_declaration::{AccountIdentifier__1, TokenIndex},
+};
 
 #[pre_upgrade]
 pub fn pre_upgrade() {
@@ -23,14 +26,26 @@ async fn add_to_whitelist(nns_principal: Principal) -> Result<Vec<u32>, String> 
 
 #[query]
 #[candid_method(query)]
-async fn get_whitelist() -> Result<Vec<(u32, Wallets)>, String> {
-    if caller().to_string() == "ledm3-52ncq-rffuv-6ed44-hg5uo-iicyu-pwkzj-syfva-heo4k-p7itq-aqe"
-        || caller().to_string() == "ve3v4-o7xuv-ijejl-vcyfx-hjy3b-owwtx-jte2k-2bciw-spskd-jgmvd-rqe"
-    {
-        return Ok(Store::get_whitelist());
-    }
+async fn get_canister() -> String {
+    Store::get_canister()
+}
 
-    return Err("Unauthorized".to_string());
+#[query]
+#[candid_method(query)]
+async fn get_snapshot() -> Vec<(TokenIndex, AccountIdentifier__1)> {
+    Store::get_snapshot()
+}
+
+#[update]
+#[candid_method(update)]
+async fn take_snapshot(canister_id: String) -> Result<(), String> {
+    Store::take_snapshot(canister_id).await
+}
+
+#[query]
+#[candid_method(query)]
+async fn get_whitelist() -> Vec<(u32, Wallets)> {
+    Store::get_whitelist()
 }
 
 // Hacky way to expose the candid interface to the outside world
